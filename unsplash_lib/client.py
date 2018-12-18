@@ -28,9 +28,7 @@ class UnsplashClient:
 
         return res.json()
     def download_images(self, json_obj, destination, format):
-
-        assert(format in ['raw','full','regular','small','thumb']),"[Client.download_images]: Requested format {} but format {} not supported".format(format,format)
-
+        print("Downloading......")
         for image in json_obj:
             res = requests.get(image['urls'][format])
 
@@ -40,6 +38,7 @@ class UnsplashClient:
 
             img = Image.open(BytesIO(res.content))
             img.save(os.path.join(destination,image['id']+'.png'))
+        print("Done.")
 
 class PublicUnsplashClient(UnsplashClient):
     """

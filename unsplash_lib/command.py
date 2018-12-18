@@ -1,3 +1,5 @@
+import os
+
 class CommandFactory:
     @classmethod
     def create_command(cls, args, client):
@@ -39,6 +41,11 @@ class ImagesDownloadCommand(Command):
         self.images_format = images_format
 
     def execute(self):
+        assert(os.path.isdir(self.images_destination))\
+            , "ERROR [ImagesDownloadCommand]: requested image destination is not a dir or does not exists"
+        assert(self.images_format in ['raw','full','regular','small','thumb'])\
+            ,"ERROR [ImagesDownloadCommand]: Requested format {} but format {} not supported".format(self.images_format, self.images_format)
+
         self.client.download_images(self.images_to_be_stored_json, self.images_destination, self.images_format)
 
 class GetCommand(Command):
@@ -71,17 +78,17 @@ class GetRandomPhoto(GetCommand):
         return res
 
 class QueryImages(GetCommand):
-    def __init__(self,client, query, max_results=-1):
+    def __init__(self,client, query, max_results=100):
         """
         Query and return images
         :param client: Unsplash client
         :param query: Search query
-        :param max_results: Maximum amount of images to be stored. If max_results <= 0, return all results
+        :param max_results: Maximum amount of images to be stored.
         """
         super(QueryImages,self).__init__(client)
 
         # max_30 elems per page supported by Unsplash API. Set to 30 to minimize calls
-        elements_in_page = min(30,max_results) if max_results > 0 else 30
+        elements_in_page = min(30,max_results)
 
         self.request = 'search/photos'
         self.request_params = {'query': query,'page':1, 'per_page': elements_in_page}
@@ -114,7 +121,7 @@ class QueryImages(GetCommand):
                 for image in res['results']:
                     image_list.append(image)
 
-                if (len(image_list) >= self.max_results and self.max_results > 0):
+                if (len(image_list) >= self.max_results):
                     break
 
         return image_list[:self.max_results]

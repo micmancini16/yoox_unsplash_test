@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from unsplash_lib.client import PublicUnsplashClient
 from unsplash_lib.command import *
 from unsplash_lib.json_viewer import JSON_Viewer
@@ -10,9 +12,11 @@ def main():
         parser.add_argument('command',help='Command')
         parser.add_argument('--download-folder', type=str, help='download images in this directory')
         parser.add_argument('--query', type=str, help='query images by this keyword')
-        parser.add_argument('--max-results',type=int, help='Maximum number of returned results')
+        parser.add_argument('--max-results',type=int,default=100, help='Maximum number of returned results')
 
-        access_key = "4a5ff7e6c98b46bdbc83bdf0d47fadfe8c797b829244978cd32ae5bbb880cbe8" #inviato via mail
+        access_key = "" #inviato via mail
+        if access_key is "":
+            raise IOError("Edit code with a valid access key.")
         client = PublicUnsplashClient(access_key)
 
         args = parser.parse_args()
@@ -32,6 +36,10 @@ def main():
         print(conn_err)
     except NotImplementedError as not_impl_err:
         print(not_impl_err)
+    except IOError as io_err:
+        print(io_err)
+    except AssertionError as as_err:
+        print(as_err)
 
 if __name__ == '__main__':
     main()
