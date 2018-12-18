@@ -12,7 +12,7 @@ class UnsplashClient:
 
     def authenticate(self, access_key):
         """
-        Write a valid HTTP Authorization header in authorization_header.
+        Write a valid HTTP Authorization header in self.authorization_header.
         Some operations require only the client id, others require user authentication
         """
         raise NotImplementedError
@@ -27,6 +27,7 @@ class UnsplashClient:
             raise ConnectionError("ERROR: HTTP Status: {} : {}".format(res.status_code, [error for error in res.json()['errors']]))
 
         return res.json()
+
     def download_images(self, json_obj, destination, format):
         print("Downloading......")
         for image in json_obj:

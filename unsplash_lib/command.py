@@ -111,15 +111,16 @@ class QueryImages(GetCommand):
             print("WARNING: Requested {} images but only {} images found".format(self.max_results,total_number_of_results))
             self.max_results = total_number_of_results
 
+        #init image_list
         image_list = res['results']
 
         if len(image_list) < self.max_results:
             #Get following pages until I have [max_results] images
-            for page in range(2,total_pages+1):
-                self.request_params['page'] = page
+            for page in range(1,total_pages):
+                self.request_params['page'] = page + 1 #python is 0-indexed
+
                 res = self.client.get(self.request, self.request_params)
-                for image in res['results']:
-                    image_list.append(image)
+                image_list.extend(res['results'])
 
                 if (len(image_list) >= self.max_results):
                     break
