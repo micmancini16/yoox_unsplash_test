@@ -19,7 +19,7 @@ class CommandFactory:
 class Command:
     def __init__(self, client):
         self.client = client
-    def execute(self):
+    def __call__(self):
         raise NotImplementedError
 
 class ImagesDownloadCommand(Command):
@@ -29,7 +29,7 @@ class ImagesDownloadCommand(Command):
         Download and store images in a given directory
 
         :param client: Unsplash Client
-        :param images_to_be_stored_json: JSON data with list of images urls and metadata returned by some query
+        :param images_to_be_stored_json: JSON data with list of images urls and metadata as returned by some query
         :param images_destination: Directory to store images in
         :param images_format: Download images with this format. Available formats: 'raw','full','regular','small','thumb'
         """
@@ -40,7 +40,7 @@ class ImagesDownloadCommand(Command):
         self.images_to_be_stored_json = images_to_be_stored_json
         self.images_format = images_format
 
-    def execute(self):
+    def __call__(self):
         assert(os.path.isdir(self.images_destination))\
             , "ERROR [ImagesDownloadCommand]: requested image destination is not a dir or does not exists"
         assert(self.images_format in ['raw','full','regular','small','thumb'])\
@@ -58,7 +58,7 @@ class GetCommand(Command):
 
         self.request_params = {}
         self.request = ''
-    def execute(self):
+    def __call__(self):
         raise NotImplementedError
 
 class GetRandomPhoto(GetCommand):
@@ -73,7 +73,7 @@ class GetRandomPhoto(GetCommand):
         self.request = 'photos/random'
         self.request_params = {'count': count}
 
-    def execute(self):
+    def __call__(self):
         res = self.client.get(self.request, self.request_params)
         return res
 
@@ -87,42 +87,10 @@ class QueryImages(GetCommand):
         """
         super(QueryImages,self).__init__(client)
 
-        # max_30 elems per page supported by Unsplash API. Set to 30 to minimize calls
-        elements_in_page = min(30,max_results)
-
         self.request = 'search/photos'
-        self.request_params = {'query': query,'page':1, 'per_page': elements_in_page}
+        self.request_params = {'query': query}
         self.max_results = max_results
 
-    def execute(self):
-        """
-        Get first page and read total number of pages.
-        Read following pages until required number of results is reached
-        """
-        #Get first page
-        self.request_params['page'] = 1
-        res = self.client.get(self.request, self.request_params)
-
-        #Get number of pages
-        total_pages = res['total_pages']
-        total_number_of_results = res['total']
-
-        if total_number_of_results < self.max_results:
-            print("WARNING: Requested {} images but only {} images found".format(self.max_results,total_number_of_results))
-            self.max_results = total_number_of_results
-
-        #init image_list
-        image_list = res['results']
-
-        if len(image_list) < self.max_results:
-            #Get following pages until I have [max_results] images
-            for page in range(1,total_pages):
-                self.request_params['page'] = page + 1 #python is 0-indexed
-
-                res = self.client.get(self.request, self.request_params)
-                image_list.extend(res['results'])
-
-                if (len(image_list) >= self.max_results):
-                    break
-
-        return image_list[:self.max_results]
+    def __call__(self):
+        res = self.client.get_multipage_search_query(self.request, self.request_params, self.max_results)
+        return res

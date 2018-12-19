@@ -28,7 +28,39 @@ class UnsplashClient:
 
         return res.json()
 
+    def get_multipage_search_query(self, request, params, max_results):
+        """
+        Read multiple pages of a search_query and extract [max_results] results
+        """
+        params['page'] = 1
+        params['per_page'] = 30 #max available
+        res = self.get(request,params)
+        # Get number of pages
+        total_pages = res['total_pages']
+        total_number_of_results = res['total']
+
+        if total_number_of_results < max_results:
+            print("WARNING: Requested {} items but only {} items found".format(max_results,total_number_of_results))
+            max_results = total_number_of_results
+
+        #init list
+        items_list = res['results']
+
+        if len(items_list) < max_results:
+            #Get following pages until I have [max_results] images
+            for page in range(1,total_pages):
+                params['page'] = page + 1 #python is 0-indexed
+
+                res = self.get(request, params)
+                items_list.extend(res['results'])
+
+                if (len(items_list) >= max_results):
+                    break
+
+        return items_list[:max_results]
+
     def download_images(self, json_obj, destination, format):
+
         print("Downloading......")
         for image in json_obj:
             res = requests.get(image['urls'][format])
@@ -39,6 +71,7 @@ class UnsplashClient:
 
             img = Image.open(BytesIO(res.content))
             img.save(os.path.join(destination,image['id']+'.png'))
+
         print("Done.")
 
 class PublicUnsplashClient(UnsplashClient):

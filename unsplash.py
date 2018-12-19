@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from unsplash_lib.client import PublicUnsplashClient
-from unsplash_lib.command import *
+from unsplash_lib.commands import *
 from unsplash_lib.json_viewer import JSON_Viewer
 
 import argparse
@@ -29,13 +29,13 @@ def main():
 
         viewer = JSON_Viewer()
 
-        images = command.execute()
+        images = command()
 
         if images is not None:
             viewer.print_json(images)
             if args.download_folder is not None:
                downloader = ImagesDownloadCommand(client, images, args.download_folder, images_format='small')
-               downloader.execute()
+               downloader()
 
     except ConnectionError as conn_err:
         print(conn_err)
