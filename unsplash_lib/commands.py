@@ -30,7 +30,7 @@ class Command:
 
 class PostProcessingCommand(Command):
     """
-    Postprocess results of GetCommand. Implementations of GetCommand should call set_data_to_process after execution
+    Postprocess results of GetCommands. Implementations of GetCommand should call set_data_to_process after execution
     """
     def __init__(self,client):
         super(PostProcessingCommand,self).__init__(client)
@@ -81,6 +81,7 @@ class GetCommand(Command):
         is_ok = self.execute()
         if is_ok:
             self.post_processing_command.set_data_to_process(self.result)
+            self.execute_post_processing()
         return is_ok
     def execute_post_processing(self):
         return self.post_processing_command()

@@ -30,7 +30,6 @@ def main():
 
         if command():
             viewer.print_json(command.result)
-            command.execute_post_processing()
 
     except Exception as err:
         print(err)
